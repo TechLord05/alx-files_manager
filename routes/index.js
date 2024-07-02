@@ -2,6 +2,7 @@ import express from 'express';
 import AppController from '../controllers/AppController';
 import AuthController from '../controllers/AuthController';
 import UsersController from '../controllers/UsersController';
+import authMiddleware from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
@@ -12,21 +13,21 @@ router.get('/status', AppController.getStatus);
 router.get('/stats', AppController.getStat);
 
 // Route to create a new user
-router.post('/users', AppController.createUser);
+router.post('/users', UsersController.createUser);
 
 // Route to find a user by email
-router.get('/users', AppController.findUser);
+router.get('/users', authMiddleware, UsersController.findUser);
 
 // Route to Authenticate user with token
-router.get('/connect', AuthController.getConnect);
+router.post('/connect', AuthController.getConnect);
 
 // Route to Logout or disconnect User by token
-router.get('/disconnect', AuthController.getDisconnect);
+router.post('/disconnect', authMiddleware, AuthController.getDisconnect);
 
-// Route to get User
-router.get('/users/me', UsersController.getMe);
+// Route to get current user
+router.get('/users/me', authMiddleware, UsersController.getMe);
 
 export default (app) => {
-  // Use the defined routes in the express application
-  app.use('/', router);
+    // Use the defined routes in the express application
+    app.use('/', router);
 };
