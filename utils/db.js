@@ -1,4 +1,5 @@
-import { MongoClient } from 'mongodb';
+// utils/db.js
+import { MongoClient, ObjectId } from 'mongodb';
 import crypto from 'crypto';
 
 const DB_HOST = process.env.DB_HOST || 'localhost';
@@ -9,7 +10,6 @@ const url = `mongodb://${DB_HOST}:${DB_PORT}`;
 /* class for performing mongo operation */
 class DBClient {
   constructor() {
-    // connect to mogodb database
     this.client = new MongoClient(url, { useUnifiedTopology: true });
     this.client.connect()
       .then(() => {
@@ -23,36 +23,18 @@ class DBClient {
       });
   }
 
-  /**
-   * Method that checks if connection is alive
-   * @return {boolean} true if the connection is alive or false if not
-   */
   isAlive() {
     return Boolean(this.db);
   }
 
-  /**
-   * Method that gets the number of users in the collection
-   * @return {Number} return number of documents in the collection users
-   */
   async nbUsers() {
     return this.usersCollection.countDocuments();
   }
 
-  /**
-   * Method that gets the number of files in the collection
-   * @return {Number} return number of documents in the collection files
-   */
   async nbFiles() {
     return this.filesCollection.countDocuments();
   }
 
-  /**
-   * Method to create a user
-   * @param {String} email - The user's email
-   * @param {String} password - The user's password
-   * @return {Object} The created user with only id and email
-   */
   async createUser(email, password) {
     const existingUser = await this.usersCollection.findOne({ email });
     if (existingUser) {
@@ -63,16 +45,18 @@ class DBClient {
     return { id: result.insertedId, email };
   }
 
-  /**
-   * Method to find a user by email
-   * @param {String} email - The user's email
-   * @return {Object} The user document if found
-   */
   async findUser(email) {
     return this.usersCollection.findOne({ email });
+  }
+
+  async getUserByEmailAndPassword(email, hashedPassword) {
+    return this.usersCollection.findOne({ email, password: hashedPassword });
+  }
+
+  async getUserById(id) {
+    return this.usersCollection.findOne({ _id: new ObjectId(id) });
   }
 }
 
 const dbClient = new DBClient();
-
 export default dbClient;

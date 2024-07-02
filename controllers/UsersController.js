@@ -1,38 +1,49 @@
 // controllers/UsersController.js
-
-import sha1 from 'sha1';
 import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 
-const UsersController = {
-  async postNew(req, res) {
+class UsersController {
+  static async createUser(req, res) {
     const { email, password } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ error: 'Missing email' });
-    }
-
-    if (!password) {
-      return res.status(400).json({ error: 'Missing password' });
-    }
-
-    // Check if the email already exists in the database
-    const userExists = await dbClient.getUserByEmail(email);
-    if (userExists) {
-      return res.status(400).json({ error: 'Already exist' });
-    }
-
-    // Hash the password using SHA1
-    const hashedPassword = sha1(password);
-
-    // Insert the new user into the database
     try {
-      const newUser = await dbClient.createUser(email, hashedPassword);
-      return res.status(201).json({ id: newUser._id, email: newUser.email });
-    } catch (err) {
-      console.error('Error creating user:', err);
+      const user = await dbClient.createUser(email, password);
+      res.status(201).json(user);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  static async findUser(req, res) {
+    const { email } = req.query;
+    try {
+      const user = await dbClient.findUser(email);
+      res.status(200).json(user);
+    } catch (error) {
+      res.status(404).json({ error: 'User not found' });
+    }
+  }
+
+  static async getMe(req, res) {
+    const token = req.headers['x-token'];
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = await redisClient.get(`auth_${token}`);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+      const user = await dbClient.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      return res.status(200).json({ id: user._id, email: user.email });
+    } catch (error) {
       return res.status(500).json({ error: 'Server error' });
     }
-  },
-};
+  }
+}
 
 export default UsersController;

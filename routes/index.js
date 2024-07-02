@@ -1,5 +1,7 @@
 import express from 'express';
 import AppController from '../controllers/AppController';
+import AuthController from '../controllers/AuthController';
+import UsersController from '../controllers/UsersController';
 
 const router = express.Router();
 
@@ -14,6 +16,15 @@ router.post('/users', AppController.createUser);
 
 // Route to find a user by email
 router.get('/users', AppController.findUser);
+
+// Route to Authenticate user with token
+router.get('/connect', AuthController.getConnect);
+
+// Route to Logout or disconnect User by token
+router.get('/disconnect', AuthController.getDisconnect);
+
+// Route to get User
+router.get('/users/me', UsersController.getMe);
 
 export default (app) => {
   // Use the defined routes in the express application
