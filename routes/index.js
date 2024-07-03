@@ -26,6 +26,9 @@ router.get('/disconnect', AuthController.getDisconnect);
 // Route to get User
 router.get('/users/me', UsersController.getMe);
 
+// Route to post files
+router.post('/files', FilesController.postUpload);
+
 export default (app) => {
   // Use the defined routes in the express application
   app.use('/', router);
