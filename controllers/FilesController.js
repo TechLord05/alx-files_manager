@@ -13,6 +13,11 @@ class FilesController {
 
     const key = `auth_${token}`;
     const userId = await redisClient.get(key);
+
+
+    console.log('Token:', token);
+    console.log('UserId from Redis:', userId);
+
     if (!userId) {
       return res.status(401).send({ error: 'Unauthorized' });
     }
